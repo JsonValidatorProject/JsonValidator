@@ -39,7 +39,8 @@ public class ComplexObjectTests
                           "employeeScore": 3.35,
                           "isAvailable": false,
                           "title": null
-                        }
+                        },
+                        null
                       ]
                     }
                     """)
@@ -76,7 +77,8 @@ public class ComplexObjectTests
                                 employeeScore = 3.35,
                                 isAvailable = false,
                                 title = null as string
-                            }
+                            },
+                            null
                         }
                     });
     }
