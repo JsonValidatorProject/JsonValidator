@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,7 +9,7 @@ namespace JsonValidator;
 
 public static class JsonElementExtensions
 {
-    private static readonly Dictionary<Type, PropertyInfo[]> TypePropertiesCache = new();
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> TypePropertiesCache = new();
 
     private static readonly HashSet<Type> PrimitiveTypes =
     [
