@@ -1,5 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- NuGet properties -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>JsonValidatorProject</Authors>
+    <Description>
+      This project provides a simple way to validate JSON objects in dotnet.
+      The main use for the tool is in integration tests.
+    </Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/JsonValidatorProject/JsonValidator</PackageProjectUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/JsonValidatorProject/JsonValidator</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+    <PackageTags>json json-validation json-validator integration-testing dotnet dotnet-core dotnet-standard</PackageTags>
+    <PackageId>JsonValidator</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
@@ -8,6 +31,13 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="7.0.3" />
+  </ItemGroup>
+
+  <!-- Included for NuGet -->
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" Visible="false" PackagePath="" />
+    <None Include="..\LICENSE" Pack="true" Visible="false" PackagePath="" />
+    <None Include="..\img\logo\logo.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
 </Project>
