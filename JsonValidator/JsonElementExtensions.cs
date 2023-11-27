@@ -13,6 +13,7 @@ public static class JsonElementExtensions
 
     private static readonly HashSet<Type> PrimitiveTypes =
     [
+        // Supported type
         typeof(string),
         typeof(bool),
         typeof(short),
@@ -20,7 +21,15 @@ public static class JsonElementExtensions
         typeof(long),
         typeof(float),
         typeof(double),
-        typeof(decimal)
+        typeof(decimal),
+
+        // Not supported types
+        typeof(char),
+        typeof(ushort),
+        typeof(uint),
+        typeof(ulong),
+        typeof(byte),
+        typeof(sbyte)
     ];
 
     private static readonly Dictionary<TypeCode, JsonValueKind[]> TypeCodeToJsonValueKind = new()
