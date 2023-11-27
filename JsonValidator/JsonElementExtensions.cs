@@ -117,8 +117,21 @@ public static class JsonElementExtensions
                         break;
                     }
 
-                    var expectedArray = (Array)property.GetValue(expectedObject);
-                    var jsonArrayLength = arrayElement.GetArrayLength();
+                    var expectedArray = (Array?)property.GetValue(expectedObject);
+                    int? jsonArrayLength = arrayElement.ValueKind == JsonValueKind.Null
+                        ? null
+                        : arrayElement.GetArrayLength();
+
+                    if (expectedArray is null && jsonArrayLength is null)
+                    {
+                        break;
+                    }
+
+                    if (expectedArray is null || jsonArrayLength is null)
+                    {
+                        errors.Add($"array mismatch for '{property.Name}': expected {expectedArray.ToValueMessage()} but was {arrayElement.ToValueMessage()}");
+                        break;
+                    }
 
                     if (jsonArrayLength != expectedArray.Length)
                     {
@@ -128,7 +141,7 @@ public static class JsonElementExtensions
 
                     for (var i = 0; i < expectedArray.Length; i++)
                     {
-                        ValidatePropertyElement(arrayElement[i], expectedArray.GetValue(i), errors);
+                        ValidatePropertyElement(arrayElement[i], expectedArray!.GetValue(i), errors);
                     }
                     break;
 
@@ -246,5 +259,13 @@ public static class JsonElementExtensions
 
     private static Type GetTypeOrString(this object? obj) => obj?.GetType() ?? typeof(string);
 
-    private static string ToValueMessage(this object? obj) => obj is null ? "(null)" : $"'{obj}'";
+    private static string ToValueMessage(this object? obj)
+    {
+        if (obj is JsonElement jsonElement)
+        {
+            return $"({jsonElement.ValueKind.ToString().ToLower()})";
+        }
+
+        return obj is null ? "(null)" : $"'{obj}'";
+    }
 }

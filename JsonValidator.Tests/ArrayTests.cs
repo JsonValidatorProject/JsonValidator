@@ -50,6 +50,11 @@ public class ArrayTests
                     "{\"prop1\": [12.45, 256.589, 2541.8913]}",
                     new { prop1 = new[] { 12.45m, 256.589m, 2541.8913m } }
                 };
+                yield return new object[]
+                {
+                    "{\"prop1\": null}",
+                    new { prop1 = null as string[] }
+                };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -114,6 +119,18 @@ public class ArrayTests
                     "{\"prop1\": [12.45, 16.529, 2541.8913]}",
                     new { prop1 = new[] { 12.45m, 256.589m, 2541.8913m } },
                     16.529, 256.589
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": null}",
+                    new { prop1 = new[] { "Apple", "Banana", "Cherry" } },
+                    "null", "String[]"
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": [\"Apple\", \"Banana\", \"Cherry\"]}",
+                    new { prop1 = null as string[] },
+                    "array", "null"
                 };
             }
 
