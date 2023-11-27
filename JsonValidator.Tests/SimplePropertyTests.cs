@@ -18,6 +18,7 @@ public class SimplePropertyTests
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (float)975.4527 } };
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = 975.4527 } };
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (decimal)975.4527 } };
+                yield return new object[] { "{\"prop1\": null}", new { prop1 = null as string } };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -43,6 +44,8 @@ public class SimplePropertyTests
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (float)975.4527 }, 575.4527, 975.4527 };
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = 975.4527 }, 575.4527, 975.4527 };
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (decimal)975.4527 }, 575.4527, 975.4527 };
+                yield return new object[] { "{\"prop1\": null}", new { prop1 = "notNull" }, "null", "notNull" };
+                yield return new object[] { "{\"prop1\": \"notNull\"}", new { prop1 = null as string }, "notNull", "null" };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
