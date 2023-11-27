@@ -6,18 +6,19 @@ public class SimpleValueTests
 {
     public class MatchTests
     {
-        private class MatchTestData : IEnumerable<object[]>
+        private class MatchTestData : IEnumerable<object?[]>
         {
-            public IEnumerator<object[]> GetEnumerator()
+            public IEnumerator<object?[]> GetEnumerator()
             {
-                yield return new object[] { "\"example\"", "example" };
-                yield return new object[] { "true", true };
-                yield return new object[] { "1024", (short)1024 };
-                yield return new object[] { "1024", 1024 };
-                yield return new object[] { "1024", (long)1024 };
-                yield return new object[] { "975.4527", (float)975.4527 };
-                yield return new object[] { "975.4527", 975.4527 };
-                yield return new object[] { "975.4527", (decimal)975.4527 };
+                yield return new object?[] { "\"example\"", "example" };
+                yield return new object?[] { "true", true };
+                yield return new object?[] { "1024", (short)1024 };
+                yield return new object?[] { "1024", 1024 };
+                yield return new object?[] { "1024", (long)1024 };
+                yield return new object?[] { "975.4527", (float)975.4527 };
+                yield return new object?[] { "975.4527", 975.4527 };
+                yield return new object?[] { "975.4527", (decimal)975.4527 };
+                yield return new object?[] { "null", null };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -31,18 +32,20 @@ public class SimpleValueTests
 
     public class MismatchTests
     {
-        private class MismatchTestData : IEnumerable<object[]>
+        private class MismatchTestData : IEnumerable<object?[]>
         {
-            public IEnumerator<object[]> GetEnumerator()
+            public IEnumerator<object?[]> GetEnumerator()
             {
-                yield return new object[] { "\"wrong\"", "example", "wrong", "example" };
-                yield return new object[] { "false", true, false, true };
-                yield return new object[] { "2048", (short)1024, 2048, 1024 };
-                yield return new object[] { "2048", 1024, 2048, 1024 };
-                yield return new object[] { "2048", (long)1024, 2048, 1024 };
-                yield return new object[] { "575.4527", (float)975.4527, 575.4527, 975.4527 };
-                yield return new object[] { "575.4527", 975.4527, 575.4527, 975.4527 };
-                yield return new object[] { "575.4527", (decimal)975.4527, 575.4527, 975.4527 };
+                yield return new object?[] { "\"wrong\"", "example", "wrong", "example" };
+                yield return new object?[] { "false", true, false, true };
+                yield return new object?[] { "2048", (short)1024, 2048, 1024 };
+                yield return new object?[] { "2048", 1024, 2048, 1024 };
+                yield return new object?[] { "2048", (long)1024, 2048, 1024 };
+                yield return new object?[] { "575.4527", (float)975.4527, 575.4527, 975.4527 };
+                yield return new object?[] { "575.4527", 975.4527, 575.4527, 975.4527 };
+                yield return new object?[] { "575.4527", (decimal)975.4527, 575.4527, 975.4527 };
+                yield return new object?[] { "\"notNull\"", null, "notNull", "null" };
+                yield return new object?[] { "null", "notNull", "null", "notNull" };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
