@@ -192,5 +192,27 @@ public class ObjectTests
             Assert.Contains(jsonValue.ToString()!, exception.Message);
             Assert.Contains(expectedValue.ToString()!, exception.Message);
         }
+
+        [Fact]
+        public void TestPropertyNotFound()
+        {
+            void Act() => JsonDocument
+                .Parse("{\"prop1\": {\"prop11\": \"value1\"}}")
+                .ValidateMatch(new { prop1 = new { prop11 = "value1" }, prop2 = new { prop21 = "value2"} });
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains("prop2", exception.Message);
+        }
+
+        [Fact]
+        public void TestInnerPropertyNotFound()
+        {
+            void Act() => JsonDocument
+                .Parse("{\"prop1\": {\"prop11\": \"value1\", \"prop12\": \"value2\"}}")
+                .ValidateMatch(new { prop1 = new { prop11 = "value1", prop13 = "value3" } });
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains("prop13", exception.Message);
+        }
     }
 }

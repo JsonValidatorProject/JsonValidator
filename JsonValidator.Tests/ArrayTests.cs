@@ -263,5 +263,16 @@ public class ArrayTests
             Assert.Contains(actualCount.ToString(), exception.Message);
             Assert.Contains(expectedCount.ToString(), exception.Message);
         }
+
+        [Fact]
+        public void TestPropertyNotFound()
+        {
+            void Act() => JsonDocument
+                .Parse("{\"prop1\": [\"value1\", \"value2\"]}")
+                .ValidateMatch(new { prop2 = new[] { "Orange", "Banana", "Cherry" } });
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains("prop2", exception.Message);
+        }
     }
 }

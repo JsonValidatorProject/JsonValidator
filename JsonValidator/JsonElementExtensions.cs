@@ -217,7 +217,14 @@ public static class JsonElementExtensions
         Func<JsonElement, T> jsonElementSelector,
         List<string> errors) where T : IComparable<T>?
     {
-        var typeInJson = jsonElement.GetProperty(propInfo.Name).ValueKind;
+        var isFound = jsonElement.TryGetProperty(propInfo.Name, out var jsonProperty);
+        if (!isFound)
+        {
+            errors.Add($"property '{propInfo.Name}' not found");
+            return;
+        }
+
+        var typeInJson = jsonProperty.ValueKind;
         var expected = (T?)propInfo.GetValue(expectedObject);
 
         var matchingJsonTypes = TypeCodeToJsonValueKind[Type.GetTypeCode(expected.GetTypeOrString())];
@@ -225,6 +232,7 @@ public static class JsonElementExtensions
         if (!matchingJsonTypes.Contains(typeInJson) && typeInJson != JsonValueKind.Null)
         {
             errors.Add($"type mismatch for '{propInfo.Name}': expected '{string.Join('|', matchingJsonTypes)}' but was '{typeInJson}'");
+            return;
         }
 
         var actual = jsonElementSelector(jsonElement);

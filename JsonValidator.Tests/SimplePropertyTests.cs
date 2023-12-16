@@ -61,5 +61,16 @@ public class SimplePropertyTests
             Assert.Contains(jsonValue.ToString()!, exception.Message);
             Assert.Contains(expectedValue.ToString()!, exception.Message);
         }
+
+        [Fact]
+        public void TestPropertyNotFound()
+        {
+            void Act() => JsonDocument
+                .Parse("{\"prop1\": \"value1\"}")
+                .ValidateMatch(new { prop2 = "value2" });
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains("prop2", exception.Message);
+        }
     }
 }
