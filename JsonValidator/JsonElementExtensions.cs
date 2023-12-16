@@ -13,6 +13,7 @@ public static class JsonElementExtensions
 
     private static readonly HashSet<Type> PrimitiveTypes =
     [
+        // Supported type
         typeof(string),
         typeof(bool),
         typeof(short),
@@ -20,7 +21,15 @@ public static class JsonElementExtensions
         typeof(long),
         typeof(float),
         typeof(double),
-        typeof(decimal)
+        typeof(decimal),
+
+        // Not supported types
+        typeof(char),
+        typeof(ushort),
+        typeof(uint),
+        typeof(ulong),
+        typeof(byte),
+        typeof(sbyte)
     ];
 
     private static readonly Dictionary<TypeCode, JsonValueKind[]> TypeCodeToJsonValueKind = new()
@@ -51,8 +60,21 @@ public static class JsonElementExtensions
     {
         // When the value is null, we can handle it as a string.
         var valueType = expectedObject.GetTypeOrString();
+        var typeCode = Type.GetTypeCode(valueType);
+        var typeInJson = jsonElement.ValueKind;
 
-        switch (Type.GetTypeCode(valueType))
+        if (!TypeCodeToJsonValueKind.ContainsKey(typeCode))
+        {
+            throw new NotSupportedException($"Type '{valueType.Name}' is not supported");
+        }
+
+        if (!TypeCodeToJsonValueKind[typeCode].Contains(typeInJson) && typeInJson != JsonValueKind.Null)
+        {
+            errors.Add($"type mismatch for value element: expected '{valueType.Name}' but was '{jsonElement.ValueKind}'");
+            return;
+        }
+
+        switch (typeCode)
         {
             case TypeCode.String:
                 ValidateValue((string?)expectedObject, jsonElement.GetString(), errors);
@@ -85,9 +107,6 @@ public static class JsonElementExtensions
             case TypeCode.Decimal:
                 ValidateValue((decimal)expectedObject!, jsonElement.GetDecimal(), errors);
                 break;
-
-            default:
-                throw new NotSupportedException($"Type '{valueType.Name}' not supported");
         }
     }
 
@@ -117,8 +136,21 @@ public static class JsonElementExtensions
                         break;
                     }
 
-                    var expectedArray = (Array)property.GetValue(expectedObject);
-                    var jsonArrayLength = arrayElement.GetArrayLength();
+                    var expectedArray = (Array?)property.GetValue(expectedObject);
+                    int? jsonArrayLength = arrayElement.ValueKind == JsonValueKind.Null
+                        ? null
+                        : arrayElement.GetArrayLength();
+
+                    if (expectedArray is null && jsonArrayLength is null)
+                    {
+                        break;
+                    }
+
+                    if (expectedArray is null || jsonArrayLength is null)
+                    {
+                        errors.Add($"array mismatch for '{property.Name}': expected {expectedArray.ToValueMessage()} but was {arrayElement.ToValueMessage()}");
+                        break;
+                    }
 
                     if (jsonArrayLength != expectedArray.Length)
                     {
@@ -128,7 +160,7 @@ public static class JsonElementExtensions
 
                     for (var i = 0; i < expectedArray.Length; i++)
                     {
-                        ValidatePropertyElement(arrayElement[i], expectedArray.GetValue(i), errors);
+                        ValidatePropertyElement(arrayElement[i], expectedArray!.GetValue(i), errors);
                     }
                     break;
 
@@ -183,7 +215,7 @@ public static class JsonElementExtensions
                     break;
 
                 default:
-                    throw new NotSupportedException($"Type '{property.PropertyType}' not supported");
+                    throw new NotSupportedException($"Type '{property.PropertyType}' is not supported");
             }
         }
     }
@@ -195,7 +227,14 @@ public static class JsonElementExtensions
         Func<JsonElement, T> jsonElementSelector,
         List<string> errors) where T : IComparable<T>?
     {
-        var typeInJson = jsonElement.GetProperty(propInfo.Name).ValueKind;
+        var isFound = jsonElement.TryGetProperty(propInfo.Name, out var jsonProperty);
+        if (!isFound)
+        {
+            errors.Add($"property '{propInfo.Name}' not found");
+            return;
+        }
+
+        var typeInJson = jsonProperty.ValueKind;
         var expected = (T?)propInfo.GetValue(expectedObject);
 
         var matchingJsonTypes = TypeCodeToJsonValueKind[Type.GetTypeCode(expected.GetTypeOrString())];
@@ -203,6 +242,7 @@ public static class JsonElementExtensions
         if (!matchingJsonTypes.Contains(typeInJson) && typeInJson != JsonValueKind.Null)
         {
             errors.Add($"type mismatch for '{propInfo.Name}': expected '{string.Join('|', matchingJsonTypes)}' but was '{typeInJson}'");
+            return;
         }
 
         var actual = jsonElementSelector(jsonElement);
@@ -246,5 +286,13 @@ public static class JsonElementExtensions
 
     private static Type GetTypeOrString(this object? obj) => obj?.GetType() ?? typeof(string);
 
-    private static string ToValueMessage(this object? obj) => obj is null ? "(null)" : $"'{obj}'";
+    private static string ToValueMessage(this object? obj)
+    {
+        if (obj is JsonElement jsonElement)
+        {
+            return $"({jsonElement.ValueKind.ToString().ToLower()})";
+        }
+
+        return obj is null ? "(null)" : $"'{obj}'";
+    }
 }

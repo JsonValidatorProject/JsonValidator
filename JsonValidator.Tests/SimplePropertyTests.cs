@@ -18,6 +18,7 @@ public class SimplePropertyTests
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (float)975.4527 } };
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = 975.4527 } };
                 yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (decimal)975.4527 } };
+                yield return new object[] { "{\"prop1\": null}", new { prop1 = null as string } };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -31,7 +32,7 @@ public class SimplePropertyTests
 
     public class MismatchTests
     {
-        private class MismatchTestData : IEnumerable<object[]>
+        private class ValueMismatchTestData : IEnumerable<object[]>
         {
             public IEnumerator<object[]> GetEnumerator()
             {
@@ -43,13 +44,56 @@ public class SimplePropertyTests
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (float)975.4527 }, 575.4527, 975.4527 };
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = 975.4527 }, 575.4527, 975.4527 };
                 yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (decimal)975.4527 }, 575.4527, 975.4527 };
+                yield return new object[] { "{\"prop1\": null}", new { prop1 = "notNull" }, "null", "notNull" };
+                yield return new object[] { "{\"prop1\": \"notNull\"}", new { prop1 = null as string }, "notNull", "null" };
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        private class TypeMismatchTestData : IEnumerable<object[]>
+        {
+            public IEnumerator<object[]> GetEnumerator()
+            {
+                yield return new object[]
+                {
+                    "{\"prop1\": \"128\" }", new { prop1 = 128 }, JsonValueKind.Number, JsonValueKind.String
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": 128 }", new { prop1 = "128" }, JsonValueKind.String, JsonValueKind.Number
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": true }", new { prop1 = "true" }, JsonValueKind.String, JsonValueKind.True
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": \"true\" }", new { prop1 = true }, JsonValueKind.True, JsonValueKind.String
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": 1 }", new { prop1 = true }, JsonValueKind.True, JsonValueKind.Number
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": true }", new { prop1 = 1 }, JsonValueKind.Number, JsonValueKind.True
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": 2541.8914 }", new { prop1 = "2541.8914" }, JsonValueKind.String, JsonValueKind.Number
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": \"2541.8914\" }", new { prop1 = 2541.8914 }, JsonValueKind.Number, JsonValueKind.String
+                };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         [Theory]
-        [ClassData(typeof(MismatchTestData))]
+        [ClassData(typeof(ValueMismatchTestData))]
         public void TestMismatch(string json, object expectedObject, object jsonValue, object expectedValue)
         {
             void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
@@ -57,6 +101,28 @@ public class SimplePropertyTests
             var exception = Assert.Throws<ValidationFailedException>(Act);
             Assert.Contains(jsonValue.ToString()!, exception.Message);
             Assert.Contains(expectedValue.ToString()!, exception.Message);
+        }
+
+        [Theory]
+        [ClassData(typeof(TypeMismatchTestData))]
+        public void TestTypeMismatch(string json, object expectedObject, JsonValueKind expectedType, JsonValueKind actualType)
+        {
+            void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains(expectedType.ToString(), exception.Message);
+            Assert.Contains(actualType.ToString(), exception.Message);
+        }
+
+        [Fact]
+        public void TestPropertyNotFound()
+        {
+            void Act() => JsonDocument
+                .Parse("{\"prop1\": \"value1\"}")
+                .ValidateMatch(new { prop2 = "value2" });
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains("prop2", exception.Message);
         }
     }
 }
