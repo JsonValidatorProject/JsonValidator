@@ -60,8 +60,21 @@ public static class JsonElementExtensions
     {
         // When the value is null, we can handle it as a string.
         var valueType = expectedObject.GetTypeOrString();
+        var typeCode = Type.GetTypeCode(valueType);
+        var typeInJson = jsonElement.ValueKind;
 
-        switch (Type.GetTypeCode(valueType))
+        if (!TypeCodeToJsonValueKind.ContainsKey(typeCode))
+        {
+            throw new NotSupportedException($"Type '{valueType.Name}' is not supported");
+        }
+
+        if (!TypeCodeToJsonValueKind[typeCode].Contains(typeInJson) && typeInJson != JsonValueKind.Null)
+        {
+            errors.Add($"type mismatch for value element: expected '{valueType.Name}' but was '{jsonElement.ValueKind}'");
+            return;
+        }
+
+        switch (typeCode)
         {
             case TypeCode.String:
                 ValidateValue((string?)expectedObject, jsonElement.GetString(), errors);
@@ -96,7 +109,7 @@ public static class JsonElementExtensions
                 break;
 
             default:
-                throw new NotSupportedException($"Type '{valueType.Name}' not supported");
+                throw new NotSupportedException($"Type '{valueType.Name}' is not supported");
         }
     }
 
@@ -205,7 +218,7 @@ public static class JsonElementExtensions
                     break;
 
                 default:
-                    throw new NotSupportedException($"Type '{property.PropertyType}' not supported");
+                    throw new NotSupportedException($"Type '{property.PropertyType}' is not supported");
             }
         }
     }

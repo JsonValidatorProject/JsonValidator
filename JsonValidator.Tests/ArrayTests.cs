@@ -242,6 +242,39 @@ public class ArrayTests
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
+        private class TypeMismatchTestData : IEnumerable<object[]>
+        {
+            public IEnumerator<object[]> GetEnumerator()
+            {
+                yield return new object[]
+                {
+                    "{\"prop1\": [\"Apple\", \"Banana\", \"Cherry\"]}",
+                    new { prop1 = new[] { 1, 2, 3 } },
+                    nameof(Int32), JsonValueKind.String
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": [true, false, true]}",
+                    new { prop1 = new[] { "yes", "no", "yes" } },
+                    nameof(String), JsonValueKind.True
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": [256, 512, 1024]}",
+                    new { prop1 = new[] { "256", "512", "1024" } },
+                    nameof(String), JsonValueKind.Number
+                };
+                yield return new object[]
+                {
+                    "{\"prop1\": [12.45, 256.589, 2541.8913]}",
+                    new { prop1 = new[] { "12.45", "256.589", "2541.8913" } },
+                    nameof(String), JsonValueKind.Number
+                };
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
         [Theory]
         [ClassData(typeof(ValueMismatchTestData))]
         public void TestValueMismatch(string json, object expectedObject, object jsonValue, object expectedValue)
@@ -262,6 +295,17 @@ public class ArrayTests
             var exception = Assert.Throws<ValidationFailedException>(Act);
             Assert.Contains(actualCount.ToString(), exception.Message);
             Assert.Contains(expectedCount.ToString(), exception.Message);
+        }
+
+        [Theory]
+        [ClassData(typeof(TypeMismatchTestData))]
+        public void TestTypeMismatch(string json, object expectedObject, string expectedTypeName, string actualTypeName)
+        {
+            void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
+
+            var exception = Assert.Throws<ValidationFailedException>(Act);
+            Assert.Contains(expectedTypeName, exception.Message);
+            Assert.Contains(actualTypeName, exception.Message);
         }
 
         [Fact]
