@@ -107,9 +107,6 @@ public static class JsonElementExtensions
             case TypeCode.Decimal:
                 ValidateValue((decimal)expectedObject!, jsonElement.GetDecimal(), errors);
                 break;
-
-            default:
-                throw new NotSupportedException($"Type '{valueType.Name}' is not supported");
         }
     }
 
