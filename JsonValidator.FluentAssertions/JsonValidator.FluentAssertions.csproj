@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
-    <PackageReference Include="JsonValidator" Version="1.0.3" />
+    <PackageReference Include="JsonValidator" Version="1.0.4" />
   </ItemGroup>
 
   <!-- Included for NuGet -->
