@@ -15,14 +15,14 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/JsonValidatorProject/JsonValidator</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <PackageTags>json json-validation json-validator integration-testing dotnet dotnet-core dotnet-standard</PackageTags>
-    <PackageId>JsonValidator</PackageId>
+    <PackageTags>json json-validation json-validator fluentassertions fluent-assertions integration-testing dotnet dotnet-core dotnet-standard</PackageTags>
+    <PackageId>JsonValidator.FluentAssertions</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.4.0</FileVersion>
     <Version>1.0.4</Version>
   </PropertyGroup>
-
+  
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
@@ -30,14 +30,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0"/>
+    <PackageReference Include="JsonValidator" Version="1.0.3" />
   </ItemGroup>
 
   <!-- Included for NuGet -->
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" Visible="false" PackagePath="" />
-    <None Include="..\LICENSE" Pack="true" Visible="false" PackagePath="" />
-    <None Include="..\img\logo\logo.png" Pack="true" Visible="false" PackagePath="" />
+    <None Include="..\README.md" Pack="true" Visible="false" PackagePath=""/>
+    <None Include="..\LICENSE" Pack="true" Visible="false" PackagePath=""/>
+    <None Include="..\img\logo\logo.png" Pack="true" Visible="false" PackagePath=""/>
   </ItemGroup>
 
 </Project>

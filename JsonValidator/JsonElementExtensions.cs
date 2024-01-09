@@ -44,13 +44,18 @@ public static class JsonElementExtensions
         [TypeCode.Decimal] = [JsonValueKind.Number]
     };
 
-    public static void ValidateMatch(this JsonDocument jsonDocument, object expectedObject)
+    public static bool TryValidateMatch(this JsonDocument jsonDocument, object expectedObject, out List<string> errors)
     {
-        var errors = new List<string>();
+        errors = [];
 
         jsonDocument.RootElement.ValidatePropertyElement(expectedObject, errors);
 
-        if (errors.Count > 0)
+        return errors.Count == 0;
+    }
+
+    public static void ValidateMatch(this JsonDocument jsonDocument, object expectedObject)
+    {
+        if (!TryValidateMatch(jsonDocument, expectedObject, out var errors))
         {
             throw new ValidationFailedException(errors);
         }
