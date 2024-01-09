@@ -31,10 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\JsonValidator\JsonValidator.csproj"/>
+    <PackageReference Include="JsonValidator" Version="1.0.3" />
   </ItemGroup>
 
   <!-- Included for NuGet -->
