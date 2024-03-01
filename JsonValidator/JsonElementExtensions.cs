@@ -28,42 +28,54 @@ public static class JsonElementExtensions
 
         var expectedJsonDocument = JsonDocument.Parse(JsonSerializer.Serialize(expectedObject));
 
-        var jsonDocumentItems = new Dictionary<string, DocumentElement>();
-        var expectedObjectItems = new Dictionary<string, DocumentElement>();
-        var jsonDocumentArrayItems = new List<string>();
-        var expectedObjectArrayItems = new List<string>();
+        var jsonDocumentElements = new Dictionary<string, DocumentElement>();
+        var expectedObjectElements = new Dictionary<string, DocumentElement>();
+        var jsonDocumentArrayElements = new List<string>();
+        var expectedObjectArrayElements = new List<string>();
 
-        TraverseJson(jsonDocument.RootElement, jsonDocumentItems, jsonDocumentArrayItems);
-        TraverseJson(expectedJsonDocument.RootElement, expectedObjectItems, expectedObjectArrayItems);
+        TraverseJson(jsonDocument.RootElement, jsonDocumentElements, jsonDocumentArrayElements);
+        TraverseJson(expectedJsonDocument.RootElement, expectedObjectElements, expectedObjectArrayElements);
 
-        foreach (var (key, expectedItem) in expectedObjectItems)
+        var problemElements = new List<DocumentElement>();
+
+        foreach (var (key, expectedElement) in expectedObjectElements)
         {
-            var isFound = jsonDocumentItems.TryGetValue(key, out var actualItem);
-            if (!isFound || actualItem is null)
+            var isFound = jsonDocumentElements.TryGetValue(key, out var actualElement);
+            if (!isFound || actualElement is null)
             {
                 errors.Add($"'{key}' not found");
                 continue;
             }
 
-            if (expectedItem.Type != actualItem.Type)
+            if (expectedElement.Type != actualElement.Type)
             {
-                errors.Add($"Type for '{key}' was {actualItem.Type} but should have been {expectedItem.Type}");
+                errors.Add($"Type for '{key}' was {actualElement.Type} but should have been {expectedElement.Type}");
+                problemElements.Add(actualElement);
                 continue;
             }
 
-            if (expectedItem.Value != actualItem.Value)
+            if (expectedElement.Value != actualElement.Value)
             {
-                errors.Add($"Value for '{key}' was '{actualItem.Value}' but should have been '{expectedItem.Value}'");
+                errors.Add($"Value for '{key}' was '{actualElement.Value}' but should have been '{expectedElement.Value}'");
+                problemElements.Add(actualElement);
             }
         }
 
-        var excessArrayElements = jsonDocumentArrayItems.Except(expectedObjectArrayItems).ToArray();
+        var excessArrayElements = jsonDocumentArrayElements.Except(expectedObjectArrayElements).ToArray();
+
         errors.AddRange(excessArrayElements.Select(e => $"Excess array elements in the JSON document: '{e}'"));
 
         if (configuration is { ExactMatch: true })
         {
-            var diff = jsonDocumentItems.Except(expectedObjectItems).Select(kvp => kvp.Value).ToArray();
-            errors.AddRange(diff.Select(d => $"Excess found in the JSON document: '{d.Path}'"));
+            var excessElementPaths = jsonDocumentElements
+                .Select(kvp => kvp.Value)
+                .Except(expectedObjectElements.Values)
+                .Except(problemElements)
+                .Select(e => e.Path)
+                .Except(excessArrayElements)
+                .ToArray();
+
+            errors.AddRange(excessElementPaths.Select(p => $"Excess found in the JSON document: '{p}'"));
         }
 
         return errors.Count == 0;
@@ -71,7 +83,7 @@ public static class JsonElementExtensions
 
     private static void TraverseJson(
         JsonElement element,
-        IDictionary<string, DocumentElement> items,
+        IDictionary<string, DocumentElement> elements,
         ICollection<string> arrays,
         string parentPath = "$")
     {
@@ -80,7 +92,7 @@ public static class JsonElementExtensions
             case JsonValueKind.Object:
                 foreach (var property in element.EnumerateObject())
                 {
-                    TraverseJson(property.Value, items, arrays, $"{parentPath}.{property.Name}");
+                    TraverseJson(property.Value, elements, arrays, $"{parentPath}.{property.Name}");
                 }
                 break;
 
@@ -88,28 +100,28 @@ public static class JsonElementExtensions
                 var array = element.EnumerateArray().ToArray();
                 for (var i = 0; i < array.Length; i++)
                 {
-                    var itemPath = $"{parentPath}[{i}]";
-                    TraverseJson(array[i], items, arrays, itemPath);
-                    arrays.Add(itemPath);
+                    var elementPath = $"{parentPath}[{i}]";
+                    TraverseJson(array[i], elements, arrays, elementPath);
+                    arrays.Add(elementPath);
                 }
                 break;
 
             case JsonValueKind.Number:
-                items.Add(parentPath, new DocumentElement(parentPath, element.GetRawText(), JsonType.Number));
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetRawText(), JsonType.Number));
                 break;
 
             case JsonValueKind.String:
-                items.Add(parentPath, new DocumentElement(parentPath, element.GetString()!, JsonType.String));
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetString()!, JsonType.String));
                 break;
 
             case JsonValueKind.True:
             case JsonValueKind.False:
-                items.Add(parentPath, new DocumentElement(parentPath, element.GetBoolean().ToString().ToLower(), JsonType.Boolean));
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetBoolean().ToString().ToLower(), JsonType.Boolean));
                 break;
 
             case JsonValueKind.Undefined:
             case JsonValueKind.Null:
-                items.Add(parentPath, new DocumentElement(parentPath, "null", JsonType.Null));
+                elements.Add(parentPath, new DocumentElement(parentPath, "null", JsonType.Null));
                 break;
 
             default:
