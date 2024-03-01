@@ -10,15 +10,15 @@ public class SimpleValueTests
         {
             public IEnumerator<object?[]> GetEnumerator()
             {
-                yield return new object?[] { "\"example\"", "example" };
-                yield return new object?[] { "true", true };
-                yield return new object?[] { "1024", (short)1024 };
-                yield return new object?[] { "1024", 1024 };
-                yield return new object?[] { "1024", (long)1024 };
-                yield return new object?[] { "975.4527", (float)975.4527 };
-                yield return new object?[] { "975.4527", 975.4527 };
-                yield return new object?[] { "975.4527", (decimal)975.4527 };
-                yield return new object?[] { "null", null };
+                yield return ["\"example\"", "example"];
+                yield return ["true", true];
+                yield return ["1024", (short)1024];
+                yield return ["1024", 1024];
+                yield return ["1024", (long)1024];
+                yield return ["975.4527", (float)975.4527];
+                yield return ["975.4527", 975.4527];
+                yield return ["975.4527", (decimal)975.4527];
+                yield return ["null", null];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -36,16 +36,16 @@ public class SimpleValueTests
         {
             public IEnumerator<object?[]> GetEnumerator()
             {
-                yield return new object?[] { "\"wrong\"", "example", "wrong", "example" };
-                yield return new object?[] { "false", true, false, true };
-                yield return new object?[] { "2048", (short)1024, 2048, 1024 };
-                yield return new object?[] { "2048", 1024, 2048, 1024 };
-                yield return new object?[] { "2048", (long)1024, 2048, 1024 };
-                yield return new object?[] { "575.4527", (float)975.4527, 575.4527, 975.4527 };
-                yield return new object?[] { "575.4527", 975.4527, 575.4527, 975.4527 };
-                yield return new object?[] { "575.4527", (decimal)975.4527, 575.4527, 975.4527 };
-                yield return new object?[] { "\"notNull\"", null, "notNull", "null" };
-                yield return new object?[] { "null", "notNull", "null", "notNull" };
+                yield return ["\"wrong\"", "example", "wrong", "example"];
+                yield return ["false", true, "false", "true"];
+                yield return ["2048", (short)1024, 2048, 1024];
+                yield return ["2048", 1024, 2048, 1024];
+                yield return ["2048", (long)1024, 2048, 1024];
+                yield return ["575.4527", (float)975.4527, 575.4527, 975.4527];
+                yield return ["575.4527", 975.4527, 575.4527, 975.4527];
+                yield return ["575.4527", (decimal)975.4527, 575.4527, 975.4527];
+                yield return ["\"notNull\"", null, "String", "Null"];
+                yield return ["null", "notNull", "Null", "String"];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -53,13 +53,14 @@ public class SimpleValueTests
 
         [Theory]
         [ClassData(typeof(MismatchTestData))]
-        public void TestStringMismatch(string json, object expectedObject, object jsonValue, object expectedValue)
+        public void TestStringMismatch(
+            string json, object expectedObject, object jsonValueOrType, object expectedValueType)
         {
             void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
 
             var exception = Assert.Throws<ValidationFailedException>(Act);
-            Assert.Contains(jsonValue.ToString()!, exception.Message);
-            Assert.Contains(expectedValue.ToString()!, exception.Message);
+            Assert.Contains(jsonValueOrType.ToString()!, exception.Message);
+            Assert.Contains(expectedValueType.ToString()!, exception.Message);
         }
     }
 }

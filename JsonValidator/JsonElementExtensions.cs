@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +45,7 @@ public static class JsonElementExtensions
         [TypeCode.Decimal] = [JsonValueKind.Number]
     };
 
-    public static bool TryValidateMatch(this JsonDocument jsonDocument, object expectedObject, out List<string> errors)
+    public static bool TryValidateMatchOld(this JsonDocument jsonDocument, object expectedObject, out List<string> errors)
     {
         errors = [];
 
@@ -53,9 +54,9 @@ public static class JsonElementExtensions
         return errors.Count == 0;
     }
 
-    public static void ValidateMatch(this JsonDocument jsonDocument, object expectedObject)
+    public static void ValidateMatchOld(this JsonDocument jsonDocument, object expectedObject)
     {
-        if (!TryValidateMatch(jsonDocument, expectedObject, out var errors))
+        if (!TryValidateMatchOld(jsonDocument, expectedObject, out var errors))
         {
             throw new ValidationFailedException(errors);
         }
@@ -129,11 +130,62 @@ public static class JsonElementExtensions
             return;
         }
 
+        // if (expectedObject is IDictionary dic)
+        // {
+        //     foreach (DictionaryEntry entry in dic)
+        //     {
+        //         var (key, value) = entry;
+        //
+        //         if (key is not string keyString)
+        //         {
+        //             throw new InvalidOperationException(
+        //                 "When providing a dictionary as an input, the key must be of type 'string'");
+        //         }
+        //
+        //         if (!jsonElement.TryGetProperty(keyString, out var childElement))
+        //         {
+        //             errors.Add($"property '{keyString}' not found");
+        //             continue;
+        //         }
+        //
+        //         ValidatePropertyElement(childElement, value, errors);
+        //     }
+        //
+        //     return;
+        // }
+
         var properties = expectedType.GetTypeProperties();
         foreach (var property in properties)
         {
             switch (Type.GetTypeCode(property.PropertyType))
             {
+                case TypeCode.Object when typeof(IDictionary).IsAssignableFrom(property.PropertyType):
+                    if (!jsonElement.TryGetProperty(property.Name, out var dictionaryElement))
+                    {
+                        errors.Add($"property '{property.Name}' not found");
+                        break;
+                    }
+
+                    foreach (DictionaryEntry entry in (property.GetValue(expectedObject) as IDictionary)!)
+                    {
+                        var (key, value) = entry;
+
+                        if (key is not string keyString)
+                        {
+                            throw new InvalidOperationException(
+                                "When providing a dictionary as an input, the key must be of type 'string'");
+                        }
+
+                        if (!dictionaryElement.TryGetProperty(keyString, out var dictionaryChildElement))
+                        {
+                            errors.Add($"property '{keyString}' not found");
+                            continue;
+                        }
+
+                        ValidatePropertyElement(dictionaryChildElement, value, errors);
+                    }
+                    break;
+
                 case TypeCode.Object when property.PropertyType.IsArray:
                     if (!jsonElement.TryGetProperty(property.Name, out var arrayElement))
                     {
