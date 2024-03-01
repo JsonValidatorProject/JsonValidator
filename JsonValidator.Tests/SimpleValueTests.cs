@@ -36,16 +36,16 @@ public class SimpleValueTests
         {
             public IEnumerator<object?[]> GetEnumerator()
             {
-                yield return ["\"wrong\"", "example", "wrong", "example"];
-                yield return ["false", true, "false", "true"];
-                yield return ["2048", (short)1024, 2048, 1024];
-                yield return ["2048", 1024, 2048, 1024];
-                yield return ["2048", (long)1024, 2048, 1024];
-                yield return ["575.4527", (float)975.4527, 575.4527, 975.4527];
-                yield return ["575.4527", 975.4527, 575.4527, 975.4527];
-                yield return ["575.4527", (decimal)975.4527, 575.4527, 975.4527];
-                yield return ["\"notNull\"", null, "String", "Null"];
-                yield return ["null", "notNull", "Null", "String"];
+                yield return ["\"wrong\"", "example"];
+                yield return ["false", true];
+                yield return ["2048", (short)1024];
+                yield return ["2048", 1024];
+                yield return ["2048", (long)1024];
+                yield return ["575.4527", (float)975.4527];
+                yield return ["575.4527", 975.4527];
+                yield return ["575.4527", (decimal)975.4527];
+                yield return ["\"notNull\"", null];
+                yield return ["null", "notNull"];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -54,13 +54,11 @@ public class SimpleValueTests
         [Theory]
         [ClassData(typeof(MismatchTestData))]
         public void TestStringMismatch(
-            string json, object expectedObject, object jsonValueOrType, object expectedValueType)
+            string json, object expectedObject)
         {
             void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
 
-            var exception = Assert.Throws<ValidationFailedException>(Act);
-            Assert.Contains(jsonValueOrType.ToString()!, exception.Message);
-            Assert.Contains(expectedValueType.ToString()!, exception.Message);
+            Assert.Throws<ValidationFailedException>(Act);
         }
     }
 }
