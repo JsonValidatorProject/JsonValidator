@@ -12,7 +12,10 @@ public class ValidationFailedException : Exception
     /// <summary>
     /// Gets a message that describes the current exception.
     /// </summary>
-    public override string Message => _message is null ? base.Message : $"{base.Message} Problem(s): {_message}";
+    public override string Message
+        => _message is null
+            ? base.Message
+            : $"{base.Message} Problem(s):{Environment.NewLine}{_message}";
 
 
     /// <summary>
@@ -47,5 +50,5 @@ public class ValidationFailedException : Exception
     /// </summary>
     /// <param name="errors">The issues found during validation.</param>
     public ValidationFailedException(List<string> errors) : base(DefaultMessage) =>
-        _message = string.Join(", ", errors);
+        _message = string.Join(Environment.NewLine, errors);
 }

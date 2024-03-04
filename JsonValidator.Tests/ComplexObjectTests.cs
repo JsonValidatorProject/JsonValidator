@@ -16,7 +16,7 @@ public class ComplexObjectTests
                       "employeeScore": 4.5326,
                       "nextLevels": [ 3, 4, 5 ],
                       "capabilities": ["accounting", "marketing", "sales"],
-                      "pollAnswers": [true, false, true, true],
+                      "pollAnswers": [[true, false, true], [true, false, false]],
                       "oldEmployeeScores": [4.2563, 4.2311, 4.3956],
                       "personalData":
                       {
@@ -54,12 +54,19 @@ public class ComplexObjectTests
                         employeeScore = 4.5326,
                         nextLevels = new[] { 3, 4, 5 },
                         capabilities = new[] { "accounting", "marketing", "sales" },
-                        pollAnswers = new[] { true, false, true, true },
+                        pollAnswers = new[]
+                        {
+                            new[] { true, false, true },
+                            new[] { true, false, false }
+                        },
                         oldEmployeeScores = new[] { 4.2563, 4.2311, 4.3956 },
                         personalData = new
-                        {
-                            age = 41, nickname = "JenTheMan", isMarried = false, creditScore = 789.3698
-                        },
+                            {
+                                age = 41,
+                                nickname = "JenTheMan",
+                                isMarried = false,
+                                creditScore = 789.3698
+                            },
                         shadows = new[]
                         {
                             new

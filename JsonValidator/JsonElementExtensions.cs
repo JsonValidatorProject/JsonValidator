@@ -1,303 +1,131 @@
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 
 namespace JsonValidator;
 
 public static class JsonElementExtensions
 {
-    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> TypePropertiesCache = new();
-
-    private static readonly HashSet<Type> PrimitiveTypes =
-    [
-        // Supported type
-        typeof(string),
-        typeof(bool),
-        typeof(short),
-        typeof(int),
-        typeof(long),
-        typeof(float),
-        typeof(double),
-        typeof(decimal),
-
-        // Not supported types
-        typeof(char),
-        typeof(ushort),
-        typeof(uint),
-        typeof(ulong),
-        typeof(byte),
-        typeof(sbyte)
-    ];
-
-    private static readonly Dictionary<TypeCode, JsonValueKind[]> TypeCodeToJsonValueKind = new()
+    public static void ValidateMatch(
+        this JsonDocument jsonDocument,
+        object expectedObject,
+        ValidationConfiguration? configuration = null)
     {
-        [TypeCode.String] = [JsonValueKind.String],
-        [TypeCode.Boolean] = [JsonValueKind.True, JsonValueKind.False],
-        [TypeCode.Int16] = [JsonValueKind.Number],
-        [TypeCode.Int32] = [JsonValueKind.Number],
-        [TypeCode.Int64] = [JsonValueKind.Number],
-        [TypeCode.Single] = [JsonValueKind.Number],
-        [TypeCode.Double] = [JsonValueKind.Number],
-        [TypeCode.Decimal] = [JsonValueKind.Number]
-    };
-
-    public static bool TryValidateMatch(this JsonDocument jsonDocument, object expectedObject, out List<string> errors)
-    {
-        errors = [];
-
-        jsonDocument.RootElement.ValidatePropertyElement(expectedObject, errors);
-
-        return errors.Count == 0;
-    }
-
-    public static void ValidateMatch(this JsonDocument jsonDocument, object expectedObject)
-    {
-        if (!TryValidateMatch(jsonDocument, expectedObject, out var errors))
+        if (!TryValidateMatch(jsonDocument, expectedObject, out var errors, configuration))
         {
             throw new ValidationFailedException(errors);
         }
     }
 
-    private static void ValidateValueElement(this JsonElement jsonElement, object? expectedObject, List<string> errors)
+    public static bool TryValidateMatch(
+        this JsonDocument jsonDocument,
+        object expectedObject,
+        out List<string> errors,
+        ValidationConfiguration? configuration = null)
     {
-        // When the value is null, we can handle it as a string.
-        var valueType = expectedObject.GetTypeOrString();
-        var typeCode = Type.GetTypeCode(valueType);
-        var typeInJson = jsonElement.ValueKind;
+        errors = [];
 
-        if (!TypeCodeToJsonValueKind.ContainsKey(typeCode))
+        var expectedJsonDocument = JsonDocument.Parse(JsonSerializer.Serialize(expectedObject));
+
+        var jsonDocumentElements = new Dictionary<string, DocumentElement>();
+        var expectedObjectElements = new Dictionary<string, DocumentElement>();
+        var jsonDocumentArrayElements = new List<string>();
+        var expectedObjectArrayElements = new List<string>();
+
+        TraverseJson(jsonDocument.RootElement, jsonDocumentElements, jsonDocumentArrayElements);
+        TraverseJson(expectedJsonDocument.RootElement, expectedObjectElements, expectedObjectArrayElements);
+
+        var problemElements = new List<DocumentElement>();
+
+        foreach (var (key, expectedElement) in expectedObjectElements)
         {
-            throw new NotSupportedException($"Type '{valueType.Name}' is not supported");
-        }
-
-        if (!TypeCodeToJsonValueKind[typeCode].Contains(typeInJson) && typeInJson != JsonValueKind.Null)
-        {
-            errors.Add($"type mismatch for value element: expected '{valueType.Name}' but was '{jsonElement.ValueKind}'");
-            return;
-        }
-
-        switch (typeCode)
-        {
-            case TypeCode.String:
-                ValidateValue((string?)expectedObject, jsonElement.GetString(), errors);
-                break;
-
-            case TypeCode.Boolean:
-                ValidateValue((bool)expectedObject!, jsonElement.GetBoolean(), errors);
-                break;
-
-            case TypeCode.Int16:
-                ValidateValue((short)expectedObject!, jsonElement.GetInt16(), errors);
-                break;
-
-            case TypeCode.Int32:
-                ValidateValue((int)expectedObject!, jsonElement.GetInt32(), errors);
-                break;
-
-            case TypeCode.Int64:
-                ValidateValue((long)expectedObject!, jsonElement.GetInt64(), errors);
-                break;
-
-            case TypeCode.Single:
-                ValidateValue((float)expectedObject!, jsonElement.GetSingle(), errors);
-                break;
-
-            case TypeCode.Double:
-                ValidateValue((double)expectedObject!, jsonElement.GetDouble(), errors);
-                break;
-
-            case TypeCode.Decimal:
-                ValidateValue((decimal)expectedObject!, jsonElement.GetDecimal(), errors);
-                break;
-        }
-    }
-
-    private static void ValidatePropertyElement(
-        this JsonElement jsonElement,
-        object? expectedObject,
-        List<string> errors)
-    {
-        // When the value is null, we can handle it as a string.
-        var expectedType = expectedObject.GetTypeOrString();
-
-        if (PrimitiveTypes.Contains(expectedType))
-        {
-            jsonElement.ValidateValueElement(expectedObject, errors);
-            return;
-        }
-
-        var properties = expectedType.GetTypeProperties();
-        foreach (var property in properties)
-        {
-            switch (Type.GetTypeCode(property.PropertyType))
+            var isFound = jsonDocumentElements.TryGetValue(key, out var actualElement);
+            if (!isFound || actualElement is null)
             {
-                case TypeCode.Object when property.PropertyType.IsArray:
-                    if (!jsonElement.TryGetProperty(property.Name, out var arrayElement))
-                    {
-                        errors.Add($"property '{property.Name}' not found");
-                        break;
-                    }
+                errors.Add($"'{key}' not found");
+                continue;
+            }
 
-                    var expectedArray = (Array?)property.GetValue(expectedObject);
-                    int? jsonArrayLength = arrayElement.ValueKind == JsonValueKind.Null
-                        ? null
-                        : arrayElement.GetArrayLength();
+            if (expectedElement.Type != actualElement.Type)
+            {
+                errors.Add($"Type for '{key}' was {actualElement.Type} but should have been {expectedElement.Type}");
+                problemElements.Add(actualElement);
+                continue;
+            }
 
-                    if (expectedArray is null && jsonArrayLength is null)
-                    {
-                        break;
-                    }
-
-                    if (expectedArray is null || jsonArrayLength is null)
-                    {
-                        errors.Add($"array mismatch for '{property.Name}': expected {expectedArray.ToValueMessage()} but was {arrayElement.ToValueMessage()}");
-                        break;
-                    }
-
-                    if (jsonArrayLength != expectedArray.Length)
-                    {
-                        errors.Add($"array length mismatch for '{property.Name}': expected {expectedArray.Length} but was {jsonArrayLength}");
-                        break;
-                    }
-
-                    for (var i = 0; i < expectedArray.Length; i++)
-                    {
-                        ValidatePropertyElement(arrayElement[i], expectedArray!.GetValue(i), errors);
-                    }
-                    break;
-
-                case TypeCode.Object:
-                    if (!jsonElement.TryGetProperty(property.Name, out var childElement))
-                    {
-                        errors.Add($"property '{property.Name}' not found");
-                        break;
-                    }
-
-                    ValidatePropertyElement(childElement, property.GetValue(expectedObject), errors);
-                    break;
-
-                case TypeCode.String:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetString(), errors);
-                    break;
-
-                case TypeCode.Boolean:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetBoolean(), errors);
-                    break;
-
-                case TypeCode.Int16:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetInt16(), errors);
-                    break;
-
-                case TypeCode.Int32:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetInt32(), errors);
-                    break;
-
-                case TypeCode.Int64:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetInt64(), errors);
-                    break;
-
-                case TypeCode.Single:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetSingle(), errors);
-                    break;
-
-                case TypeCode.Double:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetDouble(), errors);
-                    break;
-
-                case TypeCode.Decimal:
-                    ValidateProperty(jsonElement, expectedObject, property,
-                        element => element.GetProperty(property.Name).GetDecimal(), errors);
-                    break;
-
-                default:
-                    throw new NotSupportedException($"Type '{property.PropertyType}' is not supported");
+            if (expectedElement.Value != actualElement.Value)
+            {
+                errors.Add($"Value for '{key}' was '{actualElement.Value}' but should have been '{expectedElement.Value}'");
+                problemElements.Add(actualElement);
             }
         }
+
+        var excessArrayElements = jsonDocumentArrayElements.Except(expectedObjectArrayElements).ToArray();
+
+        errors.AddRange(excessArrayElements.Select(e => $"Excess array elements in the JSON document: '{e}'"));
+
+        if (configuration is { ExactMatch: true })
+        {
+            var excessElementPaths = jsonDocumentElements
+                .Select(kvp => kvp.Value)
+                .Except(expectedObjectElements.Values)
+                .Except(problemElements)
+                .Select(e => e.Path)
+                .Except(excessArrayElements)
+                .ToArray();
+
+            errors.AddRange(excessElementPaths.Select(p => $"Excess found in the JSON document: '{p}'"));
+        }
+
+        return errors.Count == 0;
     }
 
-    private static void ValidateProperty<T>(
-        JsonElement jsonElement,
-        object? expectedObject,
-        PropertyInfo propInfo,
-        Func<JsonElement, T> jsonElementSelector,
-        List<string> errors) where T : IComparable<T>?
+    private static void TraverseJson(
+        JsonElement element,
+        IDictionary<string, DocumentElement> elements,
+        ICollection<string> arrays,
+        string parentPath = "$")
     {
-        var isFound = jsonElement.TryGetProperty(propInfo.Name, out var jsonProperty);
-        if (!isFound)
+        switch (element.ValueKind)
         {
-            errors.Add($"property '{propInfo.Name}' not found");
-            return;
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    TraverseJson(property.Value, elements, arrays, $"{parentPath}.{property.Name}");
+                }
+                break;
+
+            case JsonValueKind.Array:
+                var array = element.EnumerateArray().ToArray();
+                for (var i = 0; i < array.Length; i++)
+                {
+                    var elementPath = $"{parentPath}[{i}]";
+                    TraverseJson(array[i], elements, arrays, elementPath);
+                    arrays.Add(elementPath);
+                }
+                break;
+
+            case JsonValueKind.Number:
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetRawText(), JsonType.Number));
+                break;
+
+            case JsonValueKind.String:
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetString()!, JsonType.String));
+                break;
+
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                elements.Add(parentPath, new DocumentElement(parentPath, element.GetBoolean().ToString().ToLower(), JsonType.Boolean));
+                break;
+
+            case JsonValueKind.Undefined:
+            case JsonValueKind.Null:
+                elements.Add(parentPath, new DocumentElement(parentPath, "null", JsonType.Null));
+                break;
+
+            default:
+                throw new Exception($"Unknown Json Value Kind: '{element.ValueKind}'");
         }
-
-        var typeInJson = jsonProperty.ValueKind;
-        var expected = (T?)propInfo.GetValue(expectedObject);
-
-        var matchingJsonTypes = TypeCodeToJsonValueKind[Type.GetTypeCode(expected.GetTypeOrString())];
-
-        if (!matchingJsonTypes.Contains(typeInJson) && typeInJson != JsonValueKind.Null)
-        {
-            errors.Add($"type mismatch for '{propInfo.Name}': expected '{string.Join('|', matchingJsonTypes)}' but was '{typeInJson}'");
-            return;
-        }
-
-        var actual = jsonElementSelector(jsonElement);
-
-        if (actual is null && expected is null)
-        {
-            return;
-        }
-
-        if (expected?.CompareTo(actual) != 0)
-        {
-            errors.Add(
-                $"value mismatch for '{propInfo.Name}': expected {expected.ToValueMessage()} but was {actual.ToValueMessage()}");
-        }
-    }
-
-    private static void ValidateValue<T>(T? expected, T? actual, List<string> errors)
-    {
-        if (expected is null && actual is null)
-        {
-            return;
-        }
-
-        if (expected?.Equals(actual) != true)
-        {
-            errors.Add(
-                $"value mismatch for value element: expected {expected.ToValueMessage()} but was {actual.ToValueMessage()}");
-        }
-    }
-
-    private static PropertyInfo[] GetTypeProperties(this Type type)
-    {
-        if (!TypePropertiesCache.TryGetValue(type, out var value))
-        {
-            value = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            TypePropertiesCache[type] = value;
-        }
-
-        return value;
-    }
-
-    private static Type GetTypeOrString(this object? obj) => obj?.GetType() ?? typeof(string);
-
-    private static string ToValueMessage(this object? obj)
-    {
-        if (obj is JsonElement jsonElement)
-        {
-            return $"({jsonElement.ValueKind.ToString().ToLower()})";
-        }
-
-        return obj is null ? "(null)" : $"'{obj}'";
     }
 }

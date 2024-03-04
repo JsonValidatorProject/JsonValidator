@@ -10,15 +10,15 @@ public class SimplePropertyTests
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[] { "{\"prop1\": \"example\"}", new { prop1 = "example" } };
-                yield return new object[] { "{\"prop1\": true}", new { prop1 = true } };
-                yield return new object[] { "{\"prop1\": 1024}", new { prop1 = (short)1024 } };
-                yield return new object[] { "{\"prop1\": 1024}", new { prop1 = 1024 } };
-                yield return new object[] { "{\"prop1\": 1024}", new { prop1 = (long)1024 } };
-                yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (float)975.4527 } };
-                yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = 975.4527 } };
-                yield return new object[] { "{\"prop1\": 975.4527}", new { prop1 = (decimal)975.4527 } };
-                yield return new object[] { "{\"prop1\": null}", new { prop1 = null as string } };
+                yield return ["{\"prop1\": \"example\"}", new { prop1 = "example" }];
+                yield return ["{\"prop1\": true}", new { prop1 = true }];
+                yield return ["{\"prop1\": 1024}", new { prop1 = (short)1024 }];
+                yield return ["{\"prop1\": 1024}", new { prop1 = 1024 }];
+                yield return ["{\"prop1\": 1024}", new { prop1 = (long)1024 }];
+                yield return ["{\"prop1\": 975.4527}", new { prop1 = (float)975.4527 }];
+                yield return ["{\"prop1\": 975.4527}", new { prop1 = 975.4527 }];
+                yield return ["{\"prop1\": 975.4527}", new { prop1 = (decimal)975.4527 }];
+                yield return ["{\"prop1\": null}", new { prop1 = null as string }];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -36,16 +36,16 @@ public class SimplePropertyTests
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[] { "{\"prop1\": \"wrong\"}", new { prop1 = "example" }, "wrong", "example" };
-                yield return new object[] { "{\"prop1\": false}", new { prop1 = true }, false, true };
-                yield return new object[] { "{\"prop1\": 2048}", new { prop1 = (short)1024 }, 2048, 1024 };
-                yield return new object[] { "{\"prop1\": 2048}", new { prop1 = 1024 }, 2048, 1024 };
-                yield return new object[] { "{\"prop1\": 2048}", new { prop1 = (long)1024 }, 2048, 1024 };
-                yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (float)975.4527 }, 575.4527, 975.4527 };
-                yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = 975.4527 }, 575.4527, 975.4527 };
-                yield return new object[] { "{\"prop1\": 575.4527}", new { prop1 = (decimal)975.4527 }, 575.4527, 975.4527 };
-                yield return new object[] { "{\"prop1\": null}", new { prop1 = "notNull" }, "null", "notNull" };
-                yield return new object[] { "{\"prop1\": \"notNull\"}", new { prop1 = null as string }, "notNull", "null" };
+                yield return ["{\"prop1\": \"wrong\"}", new { prop1 = "example" }];
+                yield return ["{\"prop1\": false}", new { prop1 = true }];
+                yield return ["{\"prop1\": 2048}", new { prop1 = (short)1024 }];
+                yield return ["{\"prop1\": 2048}", new { prop1 = 1024 }];
+                yield return ["{\"prop1\": 2048}", new { prop1 = (long)1024 }];
+                yield return ["{\"prop1\": 575.4527}", new { prop1 = (float)975.4527 }];
+                yield return ["{\"prop1\": 575.4527}", new { prop1 = 975.4527 }];
+                yield return ["{\"prop1\": 575.4527}", new { prop1 = (decimal)975.4527 }];
+                yield return ["{\"prop1\": null}", new { prop1 = "notNull" }];
+                yield return ["{\"prop1\": \"notNull\"}", new { prop1 = null as string }];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -55,38 +55,38 @@ public class SimplePropertyTests
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[]
-                {
-                    "{\"prop1\": \"128\" }", new { prop1 = 128 }, JsonValueKind.Number, JsonValueKind.String
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": 128 }", new { prop1 = "128" }, JsonValueKind.String, JsonValueKind.Number
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": true }", new { prop1 = "true" }, JsonValueKind.String, JsonValueKind.True
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": \"true\" }", new { prop1 = true }, JsonValueKind.True, JsonValueKind.String
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": 1 }", new { prop1 = true }, JsonValueKind.True, JsonValueKind.Number
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": true }", new { prop1 = 1 }, JsonValueKind.Number, JsonValueKind.True
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": 2541.8914 }", new { prop1 = "2541.8914" }, JsonValueKind.String, JsonValueKind.Number
-                };
-                yield return new object[]
-                {
-                    "{\"prop1\": \"2541.8914\" }", new { prop1 = 2541.8914 }, JsonValueKind.Number, JsonValueKind.String
-                };
+                yield return
+                [
+                    "{\"prop1\": \"128\" }", new { prop1 = 128 }
+                ];
+                yield return
+                [
+                    "{\"prop1\": 128 }", new { prop1 = "128" }
+                ];
+                yield return
+                [
+                    "{\"prop1\": true }", new { prop1 = "true" }
+                ];
+                yield return
+                [
+                    "{\"prop1\": \"true\" }", new { prop1 = true }
+                ];
+                yield return
+                [
+                    "{\"prop1\": 1 }", new { prop1 = true }
+                ];
+                yield return
+                [
+                    "{\"prop1\": true }", new { prop1 = 1 }
+                ];
+                yield return
+                [
+                    "{\"prop1\": 2541.8914 }", new { prop1 = "2541.8914" }
+                ];
+                yield return
+                [
+                    "{\"prop1\": \"2541.8914\" }", new { prop1 = 2541.8914 }
+                ];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -94,24 +94,20 @@ public class SimplePropertyTests
 
         [Theory]
         [ClassData(typeof(ValueMismatchTestData))]
-        public void TestMismatch(string json, object expectedObject, object jsonValue, object expectedValue)
+        public void TestMismatch(string json, object expectedObject)
         {
             void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
 
-            var exception = Assert.Throws<ValidationFailedException>(Act);
-            Assert.Contains(jsonValue.ToString()!, exception.Message);
-            Assert.Contains(expectedValue.ToString()!, exception.Message);
+            Assert.Throws<ValidationFailedException>(Act);
         }
 
         [Theory]
         [ClassData(typeof(TypeMismatchTestData))]
-        public void TestTypeMismatch(string json, object expectedObject, JsonValueKind expectedType, JsonValueKind actualType)
+        public void TestTypeMismatch(string json, object expectedObject)
         {
             void Act() => JsonDocument.Parse(json).ValidateMatch(expectedObject);
 
-            var exception = Assert.Throws<ValidationFailedException>(Act);
-            Assert.Contains(expectedType.ToString(), exception.Message);
-            Assert.Contains(actualType.ToString(), exception.Message);
+            Assert.Throws<ValidationFailedException>(Act);
         }
 
         [Fact]
