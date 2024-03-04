@@ -7,12 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonValidator", "JsonValida
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonValidator.Tests", "JsonValidator.Tests\JsonValidator.Tests.csproj", "{40DB8852-6DD4-4281-8FBF-A1DB233A9392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonValidator.FluentAssertions", "JsonValidator.FluentAssertions\JsonValidator.FluentAssertions.csproj", "{FBCA0934-A4F8-4416-8C07-E0F30C86C199}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonValidator.FluentAssertions.Tests", "JsonValidator.FluentAssertions.Tests\JsonValidator.FluentAssertions.Tests.csproj", "{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FluentAssertions", "FluentAssertions", "{A6C5C743-77CD-4463-9D1C-E9ECE908A0BE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,14 +21,6 @@ Global
 		{40DB8852-6DD4-4281-8FBF-A1DB233A9392}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40DB8852-6DD4-4281-8FBF-A1DB233A9392}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40DB8852-6DD4-4281-8FBF-A1DB233A9392}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FBCA0934-A4F8-4416-8C07-E0F30C86C199}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FBCA0934-A4F8-4416-8C07-E0F30C86C199}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FBCA0934-A4F8-4416-8C07-E0F30C86C199}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FBCA0934-A4F8-4416-8C07-E0F30C86C199}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,7 +29,5 @@ Global
 		SolutionGuid = {5FC3ABCA-EF1E-406F-AF67-D733E174BE60}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{FBCA0934-A4F8-4416-8C07-E0F30C86C199} = {A6C5C743-77CD-4463-9D1C-E9ECE908A0BE}
-		{5FF0F02C-D7AC-4B73-99D2-554D18DC72AA} = {A6C5C743-77CD-4463-9D1C-E9ECE908A0BE}
 	EndGlobalSection
 EndGlobal
