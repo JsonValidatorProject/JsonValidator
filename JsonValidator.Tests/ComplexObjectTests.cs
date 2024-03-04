@@ -62,7 +62,10 @@ public class ComplexObjectTests
                         oldEmployeeScores = new[] { 4.2563, 4.2311, 4.3956 },
                         personalData = new
                             {
-                                age = 41, nickname = "JenTheMan", isMarried = false, creditScore = 789.3698
+                                age = 41,
+                                nickname = "JenTheMan",
+                                isMarried = false,
+                                creditScore = 789.3698
                             },
                         shadows = new[]
                         {
