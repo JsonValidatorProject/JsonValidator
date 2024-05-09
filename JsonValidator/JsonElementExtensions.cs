@@ -30,11 +30,22 @@ public static class JsonElementExtensions
 
         var jsonDocumentElements = new Dictionary<string, DocumentElement>();
         var expectedObjectElements = new Dictionary<string, DocumentElement>();
+        var jsonDocumentArrays = new HashSet<string>();
+        var expectedObjectArrays = new HashSet<string>();
         var jsonDocumentArrayElements = new List<string>();
         var expectedObjectArrayElements = new List<string>();
 
-        TraverseJson(jsonDocument.RootElement, jsonDocumentElements, jsonDocumentArrayElements);
-        TraverseJson(expectedJsonDocument.RootElement, expectedObjectElements, expectedObjectArrayElements);
+        TraverseJson(
+            element: jsonDocument.RootElement,
+            elements: jsonDocumentElements,
+            arrays: jsonDocumentArrays,
+            arrayElements: jsonDocumentArrayElements);
+
+        TraverseJson(
+            element: expectedJsonDocument.RootElement,
+            elements: expectedObjectElements,
+            arrays: expectedObjectArrays,
+            arrayElements: expectedObjectArrayElements);
 
         var problemElements = new List<DocumentElement>();
 
@@ -61,7 +72,12 @@ public static class JsonElementExtensions
             }
         }
 
-        var excessArrayElements = jsonDocumentArrayElements.Except(expectedObjectArrayElements).ToArray();
+        var notExpectedArrays = jsonDocumentArrays.Except(expectedObjectArrays);
+
+        var excessArrayElements = jsonDocumentArrayElements
+            .Except(expectedObjectArrayElements)
+            .Where(i => !notExpectedArrays.Any(i.StartsWith))
+            .ToArray();
 
         errors.AddRange(excessArrayElements.Select(e => $"Excess array elements in the JSON document: '{e}'"));
 
@@ -85,6 +101,7 @@ public static class JsonElementExtensions
         JsonElement element,
         IDictionary<string, DocumentElement> elements,
         ICollection<string> arrays,
+        ICollection<string> arrayElements,
         string parentPath = "$")
     {
         switch (element.ValueKind)
@@ -92,17 +109,18 @@ public static class JsonElementExtensions
             case JsonValueKind.Object:
                 foreach (var property in element.EnumerateObject())
                 {
-                    TraverseJson(property.Value, elements, arrays, $"{parentPath}.{property.Name}");
+                    TraverseJson(property.Value, elements, arrays, arrayElements, $"{parentPath}.{property.Name}");
                 }
                 break;
 
             case JsonValueKind.Array:
+                arrays.Add(parentPath);
                 var array = element.EnumerateArray().ToArray();
                 for (var i = 0; i < array.Length; i++)
                 {
                     var elementPath = $"{parentPath}[{i}]";
-                    TraverseJson(array[i], elements, arrays, elementPath);
-                    arrays.Add(elementPath);
+                    TraverseJson(array[i], elements, arrays, arrayElements, elementPath);
+                    arrayElements.Add(elementPath);
                 }
                 break;
 

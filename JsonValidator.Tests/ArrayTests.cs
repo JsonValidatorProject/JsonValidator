@@ -60,6 +60,21 @@ public class ArrayTests
                     "{\"prop1\": null}",
                     new { prop1 = null as string[] }
                 ];
+                yield return
+                [
+                    "{\"prop1\": [\"Apple\", \"Banana\", \"Cherry\"], \"prop2\": [\"Melon\", \"Kiwi\"]}",
+                    new { prop1 = new[] { "Apple", "Banana", "Cherry" } }
+                ];
+                yield return
+                [
+                    "{\"prop\": [{\"prop11\": 10, \"prop12\": [1, 2, 3]}, {\"prop21\": 20, \"prop22\": [4, 5, 6]}]}",
+                    new { prop = new object[] { new { prop11 = 10 }, new { prop21 = 20 } } }
+                ];
+                yield return
+                [
+                    "{\"prop\": [{\"prop11\": 10, \"prop12\": [1, 2, 3]}, {\"prop21\": 20, \"prop22\": [4, 5, 6]}]}",
+                    new { prop = new object[] { new { prop11 = 10, prop12 = new[] { 1, 2, 3 } }, new { prop21 = 20 } } }
+                ];
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
