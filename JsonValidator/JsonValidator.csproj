@@ -9,7 +9,7 @@
       The main use for the tool is in integration tests.
     </Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/JsonValidatorProject/JsonValidator</PackageProjectUrl>
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
@@ -19,8 +19,8 @@
     <PackageId>JsonValidator</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
-    <Version>1.1.1</Version>
+    <FileVersion>1.1.2.0</FileVersion>
+    <Version>1.1.2</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -30,13 +30,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
   <!-- Included for NuGet -->
   <ItemGroup>
     <None Include="..\README.md" Pack="true" Visible="false" PackagePath="" />
-    <None Include="..\LICENSE" Pack="true" Visible="false" PackagePath="" />
     <None Include="..\img\logo\logo.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
