@@ -10,10 +10,8 @@ This project provides a simple way to validate JSON objects in dotnet. The main 
 | **Package**                        | **Nuget**                                                                                                                                                                                                                | **Description**                              |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
 | **JsonValidator**                  | [![Nuget: JsonValidator](https://img.shields.io/nuget/v/JsonValidator?label=JsonValidator&logo=nuget)](https://www.nuget.org/packages/JsonValidator)                                                                     | Base package containing the validation logic |
+| **JsonValidator.Shouldly**         | [![Nuget: JsonValidator.Shouldly](https://img.shields.io/nuget/v/JsonValidator.Shouldly?label=JsonValidator.Shouldly&logo=nuget)](https://www.nuget.org/packages/JsonValidator.Shouldly)                                 | Extensions for Shouldly                      |
 | **JsonValidator.FluentAssertions** | [![Nuget: JsonValidator.FluentAssertions](https://img.shields.io/nuget/v/JsonValidator.FluentAssertions?label=JsonValidator.FluentAssertions&logo=nuget)](https://www.nuget.org/packages/JsonValidator.FluentAssertions) | Extensions for FluentAssertions              |
-
-
-
 
 ## Usage
 - Parse the JSON string to a `System.Text.Json.JsonDocument`
